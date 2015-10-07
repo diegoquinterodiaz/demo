@@ -1,0 +1,18 @@
+.demo .colors {
+  overflow: hidden;
+  margin: 20px 0;
+  padding-left: 55px;
+}
+
+.demo .colors li {
+  display: block;
+  width: 96px;
+  height: 96px;
+  margin: 10px;
+  float: left;
+  border: 16px solid;
+}
+
+.demo .warm {
+  display: none;
+}

@@ -1,0 +1,252 @@
+# 1 vista de datos de la empresa
+    drop view if exists v_cmparametros;
+    create view v_cmparametros as
+    select * from cmparametros;
+#2 vista de usuario, se llama para el proceso de login
+    drop view if exists v_cmusuario;
+    create view v_cmusuario as
+    select usuario,codtipo,ifnull(cedula,'') as cedula,contrasena,descripcion,activo,intentos from cmusuario where activo=1 and intentos < 3;
+# 3 vista para crear el menu diferentes a root
+   drop view if exists v_menuroot;
+    create view v_menuroot as
+    select mo.descripcion, o.opcion, o.archivo, 't' as permiso from 
+    cmmenu me, cmmodulos mo, cmopcionesmenu o where me.modulo = mo.modulo and 
+    me.codopcion = o.codopcion and o.activo = '1' and mo.activo = '1' and 
+    me.activo = '1' and mo.orden <= 20 order by mo.orden asc, o.orden asc;
+
+# 4 vista para crear el menu de usuarios diferentes a los super administradores
+    drop view if exists v_menuuser;
+    create view v_menuuser as
+    select mo.descripcion, o.opcion, o.archivo, 't' as permiso,s.usuario as usuario from 
+    cmmenu me, cmopcionesmenu o, cmmodulos mo, cmseguridad s where me.codopcion = o.codopcion and 
+    mo.modulo = me.modulo and s.modulo = mo.modulo and mo.activo = '1' and 
+    o.activo = '1' and me.activo = '1' and s.activo='1' order by mo.orden asc, o.orden asc;
+
+# 5 vista sobre datos personales de los colaboradores
+    drop view if exists v_cmcolaborador;
+    create view v_cmcolaborador as
+    select c.*,u.usuario as nombre_usuario from cmcolaborador c 
+    left join (cmusuario u)on
+    (c.cedula=u.cedula);
+
+# 5 vista sobre datos personales de los colaboradores
+    drop view if exists v_cmcolaborador2;
+    create view v_cmcolaborador2 as
+    select c.cedula,c.nombre,c.apellidop,c.apellidos,u.usuario as nombre_usuario from cmcolaborador c 
+    left join (cmusuario u)on
+    (c.cedula=u.cedula) order by c.nombre;
+
+# 6 vista de familiares de un colaborador
+    drop view if exists v_cmfamilia;
+    create view v_cmfamilia as
+    select cedula,idfamiliar,nombre,apellidop,apellidos,parentesco,fechanacim,ocupacion from cmfamilia;
+#7 vista de la informacion academica
+    drop view if exists v_cmacademia;
+    create view v_cmacademia as
+    select * from cmacademia;
+# 8 vista de las referencia
+    drop view if exists v_cmreferencias;
+    create view v_cmreferencias as
+    select * from cmreferencias;
+# 9 vista de info laboral
+    drop view if exists v_cminfolaboral;
+    create view v_cminfolaboral as
+    select * from cminfolaboral;
+#10 vista de cargar el select de reporte balance
+    drop view if exists v_reportecmperiodo;
+    create view v_reportecmperiodo as
+    select distinct p.*,b.evaluado from cmperiodo p 
+    left join (cmbalance b) on
+    (p.anno=b.anno and p.version=b.version);
+#11 vista para cargar las areas asociadas a un usuario
+    drop view if exists v_competenciareporte;
+    create view v_competenciareporte as
+    select distinct c.descripcion,b.evaluado,b.anno,b.version from cmcompetencia c
+    left join cmbalance b on
+    (c.codcompetencia=b.codcompetencia);
+#12 vista para cargar los datos de la grafica
+    drop view if exists v_datosgrafica;
+    create view v_datosgrafica as
+    select b.codarea, a.descripcion as depto, b.codtipoeval, t.descripcion , b.codcompetencia, 
+    c.descripcion as competencia, b.evaluador, b.pesotipoeval, b.pesocompe, avg(b.calificacion), 
+    sum((b.pesotipoeval/100) * (b.pesocompe/100) * b.calificacion) valoracion, 
+    f.requerido, f.criticidad, b.fecha,b.anno ,b.version,b.evaluado  
+    from cmbalance b 
+    inner join cmtipoeval t 
+    on (b.codtipoeval = t.codigo) 
+    inner join cmcompetencia c on 
+    (b.codcompetencia = c.codcompetencia) 
+    inner join cmarea a on 
+    (b.codarea = a.codarea) 
+    inner join cmnivel n on 
+    (b.codnivel = n.codnivel) 
+    inner join cmformato f on 
+    (b.anno = f.anno and b.version = f.version and b.codcompetencia = f.codcompetencia and b.codarea = f.codarea)    
+    group by b.codarea, a.descripcion, b.codtipoeval, 
+    t.descripcion, b.codcompetencia, c.descripcion, b.evaluador, b.pesotipoeval, b.pesocompe, 
+    f.requerido, f.criticidad, b.fecha, b.codcompetencia order by c.descripcion;
+#13 vista para cargar las personas a las que puede evaluar un determinado usuario
+    drop view if exists v_personalevaluar;
+    create view v_personalevaluar as
+    select distinct t.descripcion, c.cedula, c.nombre, c.apellidop, c.apellidos, 
+    b.anno, b.version,b.evaluador from 
+    cmbalance b 
+    inner join cmtipoeval t 
+    on (b.codtipoeval = t.codigo) 
+    inner join cmcolaborador c 
+    on (b.evaluado = c.cedula);
+# 14 vista para cargar la evaluacion que se ha realizado a una persona
+    drop view if exists v_cargarevaluacion;
+    create view v_cargarevaluacion as
+    select distinct cm.descripcion cm, g.color, n.descripcion n, b.* 
+    from cmbalance b 
+    inner join cmcompetencia cm 
+    on (b.codcompetencia = cm.codcompetencia) 
+    inner join cmgrupocompetencia g 
+    on (cm.codgrupocom = g.codgrupocom) 
+    inner join cmnivel n on (b.codnivel = n.codnivel)
+    order by cm.descripcion, n.descripcion ;  
+# 15 vista de todos los modulos existentes
+    drop view if exists v_cmmodulos;
+    create view v_cmmodulos as
+    select modulo as md,descripcion as des,orden as ord,activo as act from cmmodulos;
+
+# 16 vista de todas las opciones de menu
+    drop view if exists v_cmopcionesmenu;
+    create view v_cmopcionesmenu as
+    select codopcion,opcion,archivo,orden,activo from cmopcionesmenu;
+
+# 17 vista para el menu (administrador)
+    drop view if exists v_cmmenuadmin;
+    create view v_cmmenuadmin as
+    select m.modulo,m.codopcion,m.activo,md.descripcion,op.opcion
+    from cmmenu m
+    left join(cmmodulos md, cmopcionesmenu op) on
+    (m.modulo=md.modulo and m.codopcion=op.codopcion);
+
+#18 vista de modulos para crear el menu
+    drop view if exists v_selectcmmenu;
+    create view v_selectcmmenu as
+    select m.modulo,m.descripcion from cmmodulos m;
+
+#19 vista de opciones de menu para crear el menu
+    drop view if exists v_selectcmopcionesmenu;
+    create view v_selectcmopcionesmenu as
+    select opc.codopcion,opc.opcion from cmopcionesmenu opc;
+
+#20 vista de tipos de usuarios
+    drop view if exists v_selectcmtipusu;
+    create view v_selectcmtipusu as
+    select codtipo,tipo,descripcion,activo from cmtipousuario;
+
+# 21 vista para el tipo de usuario, opcion usuario
+    drop view if exists v_selectcombotipusu;
+    create view v_selectcombotipusu as
+    select tp.codtipo as cod,tp.tipo as tipo
+    from cmtipousuario tp where codtipo <> 'sadm';
+
+#22 vista para el usuario en el combobox de opcion usuario (admin)
+    drop view if exists v_selectcombousu;
+    create view v_selectcombousu as
+    select cedula,concat(nombre,' ',apellidop,' ',apellidos) from cmcolaborador;
+
+#23 vista donde carga toda la info de cmusuarios para opcion usuarios (admin)
+    drop view if exists v_selectcmusuall;
+    create view v_selectcmusuall as
+    select u.codtipo,u.cedula,u.usuario,u.contrasena,u.descripcion,u.activo,
+    concat(cl.nombre,' ',cl.apellidop,' ',cl.apellidos) as nombre
+    from cmusuario u
+    left join(cmcolaborador cl)
+    on
+    (cl.cedula=u.cedula);
+
+#24 vista para el usuario en el combobox de opcion seguridad sistema (admin)
+    drop view if exists v_selectcombousu2;
+    create view v_selectcombousu2 as
+    select usuario from cmusuario;
+
+#25 vista de asociacion usuarios y modulos
+    drop view if exists v_selectcmseg;
+    create view v_selectcmseg as
+    select s.usuario,s.modulo,m.descripcion,s.activo
+    from cmseguridad s
+    left join (cmmodulos m)
+    on
+    (s.modulo=m.modulo) order by s.usuario,s.modulo;	
+
+#26 vista de tipo de roles
+    drop view if exists v_selectCMTipRol;
+    create view v_selectCMTipRol as
+    select codtiporol,descripcion,activo from cmtiporol;
+
+#27 vista de tipo de roles
+    drop view if exists v_selectCMRol;
+    create view v_selectCMRol as
+    select rol.codrol,rol.codtiporol,rol.descripcion,rol.activo,tip.descripcion as tipo 
+    from cmrol rol
+    left join (cmtiporol tip) on
+    (rol.codtiporol=tip.codtiporol);
+
+#28 vista de tipo de roles
+    drop view if exists v_selectCMArea;
+    create view v_selectCMArea as
+    select codarea,descripcion,activo from cmarea;
+
+#28 vista de tipo de roles
+    drop view if exists v_selectCMAreaRol;
+    create view v_selectCMAreaRol as
+    select a.descripcion as desarea,ar.codarea,r.descripcion as desrol,ar.codrol,ar.activo 
+    from cmarearol ar
+    left join (cmarea a,cmrol r)on
+    (ar.codrol=r.codrol AND ar.codarea=a.codarea) group by ar.codarea,ar.codrol;
+    
+    #29 VISTA  PARA EL GRID EN OPCION DEL MENU CONFIGURACION EVALUADOR
+    DROP VIEW IF EXISTS v_cmevaluadotipoeval ;
+    CREATE VIEW v_cmevaluadotipoeval  AS
+    SELECT * FROM cmevaluadotipoeval;
+
+#30 VISTA PARA REPORTE TABLA BSC
+    DROP VIEW IF EXISTS v_reportetablabsc;
+    CREATE VIEW v_reportetablabsc AS
+    select p.*, l.lineamiento, i.iniciativa, ma.descripcion as desc1, mc.descripcion as desc2, mc.esperado, mc.real,
+    ma.anno as anio,ma.semestre as sem,mc.cedula as ced, mc.tipometa
+    from cmlineamiento l inner join cminiciativa i on (l.codlinea = i.codlinea)
+    inner join cmmetasarea ma on (i.codigoreg = ma.codinicia)
+    inner join cmmetascolab mc on (ma.codigoreg = mc.codmetarea)
+    inner join cmplanaccion p on (mc.codigoreg = p.codmetacol) WHERE p.activo='1';
+
+# 31 VISTA PARA LA LISTA DESPLEGABLE DE LOS UDUARIOS DEPENDIENTES
+# EN LA OPCION REPORTE BSC SELECTIVO
+    DROP VIEW IF EXISTS v_cmjerarquiaBox;
+    CREATE VIEW v_cmjerarquiaBox AS
+    SELECT j.dependiente,CONCAT(c.nombre,' ',c.apellidop,' ',c.apellidos), j.lider as lider
+    FROM cmjerarquia j
+    LEFT JOIN (cmcolaborador c) ON
+    (j.dependiente=c.cedula);
+#32 #28 vista de tipo de roles
+    drop view if exists v_selectCMArea2;
+    create view v_selectCMArea2 as
+    select codarea,descripcion,activo from cmarea WHERE activo='1';    
+
+#33 #27 vista de tipo de roles
+    drop view if exists v_selectCMRol2;
+    create view v_selectCMRol2 as
+    select codrol,codtiporol,descripcion,activo
+    from cmrol where activo='1';
+
+#34 VISTA DE LAS COMPETENCIAS PAL GRID
+    DROP VIEW IF EXISTS v_cmcompetenciasGrid;
+    CREATE VIEW v_cmcompetenciasGrid AS
+    SELECT cm.codcompetencia as codcompetencia,
+            gr.descripcion as grupo,
+            cm.descripcion as descripcion,
+            cm.observaciones as observaciones,
+            cm.activo as activo
+            FROM cmcompetencia cm LEFT JOIN(cmgrupocompetencia gr) ON (cm.codgrupocom=gr.codgrupocom);
+
+#35 VISTA DE AREAS Y COMPETENCIAS PARA EL GRID
+    DROP VIEW IF EXISTS v_selectCMAreaCompetencia;
+    CREATE VIEW v_selectCMAreaCompetencia AS
+    SELECT a.descripcion as area,c.descripcion as competencia,ac.activo FROM cmareacompetencia ac
+    LEFT JOIN(cmarea a,cmcompetencia c) ON
+    (ac.codarea=a.codarea AND c.codcompetencia=ac.codcompetencia);

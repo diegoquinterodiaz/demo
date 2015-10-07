@@ -1,0 +1,165 @@
+# 1 vista de datos de la empresa
+    DROP VIEW IF EXISTS v_cmparametros;
+    CREATE VIEW v_cmparametros AS
+    SELECT * FROM cmparametros;
+#2 vista de usuario, se llama para el proceso de login
+    DROP VIEW IF EXISTS v_cmusuario;
+    CREATE VIEW v_cmusuario AS
+    SELECT * FROM cmusuario WHERE activo=1 AND intentos < 3;
+# 3 vista para crear el menu diferentes a root
+   DROP VIEW IF EXISTS v_menuRoot;
+    CREATE VIEW v_menuRoot AS
+    SELECT MO.DESCRIPCION, O.OPCION, O.ARCHIVO, 'T' AS PERMISO FROM 
+    cmmenu ME, cmmodulos MO, cmopcionesmenu O WHERE ME.modulo = MO.modulo AND 
+    ME.CODOPCION = O.CODOPCION AND O.ACTIVO = '1' AND MO.ACTIVO = '1' AND 
+    ME.ACTIVO = '1' AND MO.ORDEN <= 20 ORDER BY MO.ORDEN ASC, O.ORDEN ASC;
+# 4 vista para crear el menu de usuarios diferentes a los super administradores
+    DROP VIEW IF EXISTS v_menuUser;
+    CREATE VIEW v_menuUser AS
+    SELECT MO.DESCRIPCION, O.OPCION, O.ARCHIVO, 'T' AS PERMISO,S.USUARIO AS USUARIO FROM 
+    cmmenu ME, cmopcionesmenu O, cmmodulos MO, cmseguridad S WHERE ME.CODOPCION = O.CODOPCION AND 
+    MO.MODULO = ME.MODULO AND S.MODULO = MO.MODULO AND MO.ACTIVO = '1' AND 
+    O.ACTIVO = '1' AND ME.ACTIVO = '1' ORDER BY MO.ORDEN ASC, O.ORDEN ASC;
+# 5 Vista sobre datos personales de los colaboradores
+    DROP VIEW IF EXISTS v_cmcolaborador;
+    CREATE VIEW v_cmcolaborador AS
+    SELECT c.*,u.usuario as nombre_usuario FROM cmcolaborador c 
+    left join (cmusuario u)ON
+    (c.cedula=u.cedula);
+# 6 vista de familiares de un colaborador
+    DROP VIEW IF EXISTS v_cmfamilia;
+    CREATE VIEW v_cmfamilia AS
+    SELECT * FROM cmfamilia;
+#7 vista de la informacion academica
+    DROP VIEW IF EXISTS v_cmacademia;
+    CREATE VIEW v_cmacademia AS
+    SELECT * FROM cmacademia;
+# 8 vista de las referencia
+    DROP VIEW IF EXISTS v_cmreferencias;
+    CREATE VIEW v_cmreferencias AS
+    SELECT * FROM cmreferencias;
+# 9 vista de info laboral
+    DROP VIEW IF EXISTS v_cminfolaboral;
+    CREATE VIEW v_cminfolaboral AS
+    SELECT * FROM cminfolaboral;
+#10 vista de cargar el select de reporte balance
+    DROP VIEW IF EXISTS v_ReporteCMperiodo;
+    CREATE VIEW v_ReporteCMperiodo AS
+    SELECT DISTINCT p.*,b.evaluado FROM cmperiodo p 
+    LEFT JOIN (cmbalance b) ON
+    (p.anno=b.anno AND p.version=b.version);
+#11 vista para cargar las areas asociadas a un usuario
+    DROP VIEW IF EXISTS v_CompetenciaReporte;
+    CREATE VIEW v_CompetenciaReporte AS
+    SELECT DISTINCT c.descripcion,b.evaluado,b.anno,b.version FROM cmcompetencia c
+    LEFT JOIN cmbalance b ON
+    (c.codcompetencia=b.codcompetencia);
+#12 vista para cargar los datos de la grafica
+    DROP VIEW IF EXISTS v_DatosGrafica;
+    CREATE VIEW v_DatosGrafica AS
+    SELECT B.CODAREA, A.DESCRIPCION as DEPTO, B.CODTIPOEVAL, T.DESCRIPCION , B.CODCOMPETENCIA, 
+    C.DESCRIPCION as COMPETENCIA, B.EVALUADOR, B.PESOTIPOEVAL, B.PESOCOMPE, AVG(B.CALIFICACION), 
+    SUM((B.PESOTIPOEVAL/100) * (B.PESOCOMPE/100) * B.CALIFICACION) VALORACION, 
+    F.REQUERIDO, F.CRITICIDAD, B.FECHA,B.ANNO ,B.VERSION,B.EVALUADO  
+    FROM cmbalance B 
+    INNER JOIN cmtipoeval T 
+    ON (B.CODTIPOEVAL = T.CODIGO) 
+    INNER JOIN cmcompetencia C ON 
+    (B.CODCOMPETENCIA = C.CODCOMPETENCIA) 
+    INNER JOIN cmarea A ON 
+    (B.CODAREA = A.CODAREA) 
+    INNER JOIN cmnivel N ON 
+    (B.CODNIVEL = N.CODNIVEL) 
+    INNER JOIN cmformato F ON 
+    (B.ANNO = F.ANNO AND B.VERSION = F.VERSION AND B.CODCOMPETENCIA = F.CODCOMPETENCIA AND B.CODAREA = F.CODAREA)    
+    GROUP BY B.CODAREA, A.DESCRIPCION, B.CODTIPOEVAL, 
+    T.DESCRIPCION, B.CODCOMPETENCIA, C.DESCRIPCION, B.EVALUADOR, B.PESOTIPOEVAL, B.PESOCOMPE, 
+    F.REQUERIDO, F.CRITICIDAD, B.FECHA, B.CODCOMPETENCIA ORDER BY C.DESCRIPCION;
+#13 Vista para cargar las personas a las que puede evaluar un determinado usuario
+    DROP VIEW IF EXISTS v_PersonalEvaluar;
+    CREATE VIEW v_PersonalEvaluar AS
+    SELECT DISTINCT T.DESCRIPCION, C.CEDULA, C.NOMBRE, C.APELLIDOP, C.APELLIDOS, 
+    B.ANNO, B.VERSION,B.EVALUADOR FROM 
+    cmbalance B 
+    INNER JOIN cmtipoeval T 
+    ON (B.CODTIPOEVAL = T.CODIGO) 
+    INNER JOIN cmcolaborador C 
+    ON (B.EVALUADO = C.CEDULA);
+# 14 Vista para cargar la evaluacion que se ha realizado a una persona
+    DROP VIEW IF EXISTS v_CargarEvaluacion;
+    CREATE VIEW v_CargarEvaluacion AS
+    SELECT DISTINCT CM.DESCRIPCION cm, G.COLOR, N.DESCRIPCION n, B.* 
+    FROM cmbalance B 
+    INNER JOIN cmcompetencia CM 
+    ON (B.CODCOMPETENCIA = CM.CODCOMPETENCIA) 
+    INNER JOIN cmgrupocompetencia G 
+    ON (CM.CODGRUPOCOM = G.CODGRUPOCOM) 
+    INNER JOIN cmnivel N ON (B.CODNIVEL = N.CODNIVEL)
+    ORDER BY CM.DESCRIPCION, N.DESCRIPCION ;  
+# 15 Vista de todos los modulos existentes
+    DROP VIEW IF EXISTS v_cmModulos;
+    CREATE VIEW v_cmModulos AS
+    SELECT * FROM cmModulos;
+
+# 16 Vista de todas las opciones de menu
+    DROP VIEW IF EXISTS v_cmOpcionesMenu;
+    CREATE VIEW v_cmOpcionesMenu AS
+    SELECT * FROM cmopcionesmenu;
+
+# 17 Vista para el menu (Administrador)
+    DROP VIEW IF EXISTS v_cmMenuAdmin;
+    CREATE VIEW v_cmMenuAdmin AS
+    SELECT m.*,md.descripcion,op.opcion
+    FROM cmmenu m
+    LEFT JOIN(cmmodulos md, cmopcionesmenu op) ON
+    (m.modulo=md.modulo AND m.codopcion=op.codopcion);
+
+#18 Vista de modulos para crear el menu
+    DROP VIEW IF EXISTS v_selectCMMenu;
+    CREATE VIEW v_selectCMMenu AS
+    SELECT m.modulo,m.descripcion FROM cmmodulos m;
+
+#19 Vista de opciones de menu para crear el menu
+    DROP VIEW IF EXISTS v_selectCMOpcionesMenu;
+    CREATE VIEW v_selectCMOpcionesMenu AS
+    SELECT opc.codopcion,opc.opcion FROM cmopcionesmenu opc;
+
+#20 Vista de tipos de usuarios
+    DROP VIEW IF EXISTS v_selectCMTipUsu;
+    CREATE VIEW v_selectCMTipUsu AS
+    SELECT * FROM cmtipousuario;
+
+# 21 Vista para el tipo de usuario, opcion Usuario
+    DROP VIEW IF EXISTS v_selectComboTipUsu;
+    CREATE VIEW v_selectComboTipUsu AS
+    SELECT tp.codtipo as cod,tp.tipo as tipo
+    FROM cmtipousuario tp WHERE codtipo <> 'SADM';
+
+#22 vista para el usuario en el combobox de opcion Usuario (admin)
+    DROP VIEw IF EXISTS v_selectComboUsu;
+    CREATE VIEW v_selectComboUsu AS
+    SELECT cedula,CONCAT(nombre,' ',apellidop,' ',apellidos) FROM cmcolaborador;
+
+#23 Vista donde carga toda la info de cmusuarios para opcion Usuarios (admin)
+    DROP VIEW IF EXISTS v_selectCMUsuAll;
+    CREATE VIEW v_selectCMUsuAll AS
+    SELECT u.codtipo,u.cedula,u.usuario,u.contrasena,u.descripcion,u.activo,
+    CONCAT(cl.nombre,' ',cl.apellidop,' ',cl.apellidos) as nombre
+    FROM cmusuario u
+    LEFT JOIN(cmcolaborador cl)
+    ON
+    (cl.cedula=u.cedula);
+
+#24 vista para el usuario en el combobox de opcion seguridad sistema (admin)
+    DROP VIEw IF EXISTS v_selectComboUsu2;
+    CREATE VIEW v_selectComboUsu2 AS
+    SELECT usuario FROM cmusuario;
+
+#25 Vista de asociacion usuarios y modulos
+    DROP VIEW IF EXISTS v_selectCMSeg;
+    CREATE VIEW v_selectCMSeg AS
+    SELECT s.usuario,s.modulo,m.descripcion,s.activo
+    FROM cmseguridad s
+    LEFT JOIN (cmmodulos m)
+    ON
+    (s.modulo=m.modulo) ORDER BY s.usuario,s.modulo;	

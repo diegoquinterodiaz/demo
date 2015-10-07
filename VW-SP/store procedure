@@ -1,0 +1,1100 @@
+# 1 actualizar datos personales
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_updateCMcolaboradorPersonal;//
+CREATE PROCEDURE sp_updateCMcolaboradorPersonal(ced VARCHAR(10),nom VARCHAR(100),apeP VARCHAR(50),apeS VARCHAR(50),expCed VARCHAR(100),
+libMil VARCHAR(15),disMil VARCHAR(5),sex VARCHAR(2),estCivil VARCHAR(20),fecNac date,paisNac VARCHAR(50),depNac VARCHAR(50),
+ciuNac VARCHAR(50),dir VARCHAR(100),barr VARCHAR(50),ciuRes VARCHAR(50),tel VARCHAR(50),cel VARCHAR(11),vivienda VARCHAR(15),
+fecIngr date,epsIng VARCHAR(100),arpIng VARCHAR(100),pensionIng VARCHAR(100),cesan VARCHAR(100),mailPer VARCHAR(2000),mailEmp VARCHAR(2000),
+salar double,cod VARCHAR(100),fotogr VARCHAR(2000))
+BEGIN
+ UPDATE cmcolaborador SET nombre=nom,apellidop=apeP,apellidos=apeS,expcedula=expCed,libretamil=libMil,distritomil=disMil,
+ sexo=sex,estadocivil=estCivil,fechanacim=fecNac,paisnacim=paisNac,deptonacim=depNac,ciudadnacim=ciuNac,direccion=dir,
+ barrio=barr,ciudadresid=ciuRes,telefonoresid=tel,celular=cel,tipovivienda=vivienda,fechaingreso=fecIngr,eps=epsIng,
+ arp=arpIng,pension=pensionIng,cesantias=cesan,mailpersonal=mailPer,mailempresa=mailEmp,salario=salar,codigo=cod,foto=fotogr
+WHERE cedula=ced;
+END;
+//
+
+# 2 insertar datos nuevos de los familiares
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_insertCMfamilia;//
+CREATE PROCEDURE sp_insertCMfamilia(ced VARCHAR(10),ident VARCHAR(10),nom VARCHAR(100),apeP VARCHAR(50),apeS VARCHAR(50),
+paren VARCHAR(100),fecha DATE,ocupa VARCHAR(2000))
+BEGIN
+ INSERT INTO cmfamilia VALUES(ced,ident,nom,apeP,apeS,paren,fecha,ocupa);
+END;
+//
+
+# 3 insertar datos nuevos de estudios academicos
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_insertCMacademia;//
+CREATE PROCEDURE sp_insertCMacademia(ced VARCHAR(10),nvl VARCHAR(20),inst VARCHAR(2000),fecini DATE,fecfin DATE,
+title VARCHAR(2000))
+BEGIN
+DECLARE codi,cantidad smallint(6);
+SET codi=100;
+SELECT count(*) into cantidad FROM cmacademia;
+IF cantidad = 0 THEN
+ SET codi=100;
+ ELSE
+  SELECT max(codigo) into cantidad FROM cmacademia;
+  SET codi=cantidad+1;
+END IF;
+INSERT INTO cmacademia VALUES(ced,codi,nvl,inst,fecini,fecfin,title);
+END;
+//
+
+# 4 actualizar estudios academicos
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_updateCMacademia;//
+CREATE PROCEDURE  sp_updateCMacademia(ced VARCHAR(10),cod SMALLINT(6),nvl VARCHAR(20),inst VARCHAR(2000),fecini DATE,fecfin DATE,
+title VARCHAR(2000),oculto VARCHAR(2))
+BEGIN
+ IF oculto = 'SI' THEN
+    DELETE FROM cmacademia WHERE cedula=ced AND codigo=cod;
+ ELSE
+    UPDATE cmacademia SET nivel=nvl,institucion=inst,fechainicio=fecini,fechafin=fecfin,titulo=title WHERE cedula=ced AND codigo=cod;
+ END IF;
+END;
+//
+
+# 5 Insertar referencias
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_insertCMreferencia;//
+CREATE PROCEDURE sp_insertCMreferencia(ced VARCHAR(10),cedu VARCHAR(10),nombre VARCHAR(100),pApe VARCHAR(50),sApe VARCHAR(50),
+dir VARCHAR(200),tel VARCHAR(50),tipo VARCHAR(10),obs1 VARCHAR(2000),obs2 VARCHAR(2000))
+BEGIN
+ INSERT INTO cmreferencias VALUES(ced,cedu,nombre,pApe,sApe,dir,tel,tipo,obs1,obs2);
+END;
+//
+
+# 6 Actualizar Referencias
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_updateCMreferencia;//
+CREATE PROCEDURE sp_updateCMreferencia(ced VARCHAR(10),cedu VARCHAR(10),nom VARCHAR(100),pApe VARCHAR(50),sApe VARCHAR(50),
+dir VARCHAR(200),tel VARCHAR(50),tipo VARCHAR(10),obs1 VARCHAR(2000),obs2 VARCHAR(2000),opcion VARCHAR(2))
+BEGIN
+ IF opcion='SI' THEN
+    DELETE FROM cmreferencias WHERE cedula=ced AND cedreferencia=cedu;
+ ELSE
+    UPDATE cmreferencias SET nombre=nom,apellidop=pApe,apellidos=sApe,direccion=dir,telefono=tel,
+    tiporef=tipo,observacion1=obs1,observacion2=obs2 WHERE cedula=ced AND cedreferencia=cedu;
+ END IF;
+END;
+//
+
+# 7 Insertar registros de info laboral
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_insertCMinfolaboral;//
+CREATE PROCEDURE sp_insertCMinfolaboral(ced VARCHAR(10),empr VARCHAR(2000),car VARCHAR(2000),fecin DATE,fecfin DATE,func VARCHAR(2000),
+obs VARCHAR(2000))
+BEGIN
+DECLARE codi,cantidad smallint(6);
+SET codi=100;
+SELECT count(*) into cantidad FROM cminfolaboral;
+IF cantidad = 0 THEN
+ SET codi=100;
+ ELSE
+  SELECT max(codigo) into cantidad FROM cminfolaboral;
+  SET codi=cantidad+1;
+END IF;
+INSERT INTO cminfolaboral VALUES(ced,codi,empr,car,fecin,fecfin,func,obs);
+END;
+//
+
+# 8 Actualizar informacion laboral
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_updateCMinfolaboral;//
+CREATE PROCEDURE sp_updateCMinfolaboral(ced VARCHAR(10),cod SMALLINT(6),empr VARCHAR(2000),car VARCHAR(2000),fecin DATE,fecfin DATE,func VARCHAR(2000),
+obs VARCHAR(2000),oculto VARCHAR(2))
+BEGIN
+ IF oculto='SI' THEN
+    DELETE FROM cminfolaboral WHERE cedula=ced AND codigo=cod;
+  ELSE
+    UPDATE cminfolaboral SET empresa=empr,cargo=car,fechainicio=fecin,
+        fechafin=fecfin,funciones=func,observaciones=obs WHERE cedula=ced AND codigo=cod;
+ END IF;
+END;
+//
+
+# 9 Actualizar contrsasenia
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_updateSeguridad;//
+CREATE PROCEDURE sp_updateSeguridad(ced VARCHAR(10),pss VARCHAR(20),new VARCHAR(20))
+BEGIN
+UPDATE cmusuario SET contrasena=new WHERE cedula=ced AND contrasena=pss;
+END;
+//
+
+# Actualizar parametros
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_updateCMParametros;//
+CREATE PROCEDURE sp_updateCMParametros
+(nt VARCHAR(15),nm VARCHAR(2000),rz VARCHAR(2000),dr VARCHAR(2000),tl VARCHAR(100),
+fx VARCHAR(100),wb VARCHAR(1000), lg VARCHAR(2000))
+BEGIN
+ UPDATE cmparametros SET nit=nt,nombre=nm,razonsocial=rz,direccion=dr,telefono=tl,fax=fx,paginaweb=wb,logo=lg;
+END;
+//
+
+# Insertar nuevos modulos
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMModulos;//
+CREATE PROCEDURE sp_addCMModulos(md VARCHAR(50),des VARCHAR(2000),ord SMALLINT(2),ac CHAR(1))
+BEGIN
+    INSERT INTO cmmodulos VALUES(md,des,ord,ac);
+END;
+//
+
+# Editar modulos
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMModulos;//
+CREATE PROCEDURE sp_editCMModulos(md VARCHAR(50),des VARCHAR(2000),ord SMALLINT(2),ac CHAR(1))
+BEGIN
+    UPDATE cmmodulos SET descripcion=des,orden=ord,activo=ac WHERE modulo=md;
+END;
+//
+
+# Insertar nuevos opciones de menu
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMOpcionesMenu;//
+CREATE PROCEDURE sp_addCMOpcionesMenu(cod VARCHAR(4),op VARCHAR(2000),arc VARCHAR(2000),ord SMALLINT(2),ac CHAR(1))
+BEGIN
+    INSERT INTO cmopcionesmenu VALUES(cod,op,arc,ord,ac);
+END;
+//
+
+# Editar modulos
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMOpcionesMenu;//
+CREATE PROCEDURE sp_editCMOpcionesMenu(cod VARCHAR(4),op VARCHAR(2000),arc VARCHAR(2000),ord SMALLINT(2),ac CHAR(1))
+BEGIN
+    UPDATE cmopcionesmenu SET opcion=op,archivo=arc,orden=ord,activo=ac WHERE codopcion=cod;
+END;
+//
+
+#Adicionar elementos al menu
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMMenu;//
+CREATE PROCEDURE sp_addCMMenu(md VARCHAR(50),cod VARCHAR(4),ac CHAR(1))
+BEGIN
+    INSERT INTO cmmenu VALUES(md,cod,ac);
+END;
+//
+
+# Eliminar elementos del menu
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_deleteMenu;//
+CREATE PROCEDURE sp_deleteMenu(md VARCHAR(50),cod VARCHAR(4))
+BEGIN
+    DELETE FROM cmmenu WHERE modulo=md AND codopcion=cod;
+END;
+//
+
+#Editar elementos al menu
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMMenu;//
+CREATE PROCEDURE sp_editCMMenu(md VARCHAR(50),cod VARCHAR(4),ac CHAR(1))
+BEGIN
+    UPDATE cmmenu SET activo=ac WHERE modulo=md AND codopcion=cod;
+END;
+//
+
+#Adicionar tipos de usuario
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMTipUsu;//
+CREATE PROCEDURE sp_addCMTipUsu(cod VARCHAR(4),tp VARCHAR(50),des VARCHAR(2000),ac CHAR(1))
+BEGIN
+    INSERT INTO cmtipousuario VALUES(cod,tp,des,ac);
+END;
+//
+
+#Editar tipos de usuarios
+DELIMITER //
+DrOP ProCeDURE IF EXISTS sp_editCMTipUsu;//
+CREATE PROCEDURE sp_editCMTipUsu (cod VARCHAR(4),tp VARCHAR(50),des VARCHAR(2000),ac CHAR(1))
+BEGIN
+    UPDATE cmtipousuario SET tipo=tp,descripcion=des,activo=ac WHERE codtipo=cod;
+END;
+//
+
+# Adicionar usuario a cmusuario
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMUsuario;//
+CREATE PROCEDURE sp_addCMUsuario (usu VARCHAR(50),cod VARCHAR(4),ced VARCHAR(10),pss VARCHAR(20),
+des VARCHAR(2000),ac CHAR(1))
+BEGIN
+ INSERT INTO cmusuario VALUES (usu,cod,ced,pss,des,ac,0);
+END;
+//
+
+#Editar usuarios cmusuario (admin)
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMUsuAdmin;//
+CREATE PROCEDURE sp_editCMUsuAdmin (usu VARCHAR(50),cod VARCHAR(4),ced VARCHAR(10),pss VARCHAR(20),
+des VARCHAR(2000),ac CHAR(1))
+BEGIN
+    UPDATE cmusuario SET usuario=usu,codtipo=cod,contrasena=pss,descripcion=des,activo=ac WHERE cedula=ced;
+END;
+//
+
+# Asociar un nuevo modulo a un usuario
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMSeguridad;//
+CREATE PROCEDURE sp_addCMSeguridad (modu VARCHAR(50),usu VARCHAR(50))
+BEGIN
+    INSERT INTO cmseguridad VALUES(modu,usu,'1');
+END;
+//
+
+# Editar un modulo y un usuario
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMSeg;//
+CREATE PROCEDURE sp_editCMSeg (modu VARCHAR(50),usu VARCHAR(50),act CHAR(1))
+BEGIN
+    UPDATE cmseguridad SET activo=act WHERE modulo=modu AND usuario=usu;
+END;
+//
+
+#Eliminar usuario y modulo de seguridad
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_deleteCMSeg;//
+CREATE PROCEDURE sp_deleteCMSeg (modu VARCHAR(50),usu VARCHAR(50))
+BEGIN
+    DELETE FROM cmseguridad WHERE modulo=modu AND usuario=usu;
+END;
+//
+
+#Adicionar tipos de roles
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMRol;//
+CREATE PROCEDURE sp_addCMRol(cod VARCHAR(5),des VARCHAR(100),act CHAR(1))
+BEGIN
+ iNSERT INto cmtiporol VALUES(cod,des,act);
+END;
+//
+
+#Editar los tipos de roles
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMRol;//
+CREATE PROCEDURE sp_editCMRol(cod VARCHAR(5),des VARCHAR(100),act CHAR(1))
+BEGIN
+ UPDATE cmtiporol SET descripcion=des,activo=act WHERE codtiporol=cod;
+END;
+//
+
+#Adicionar roles
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMRol2;//
+CREATE PROCEDURE sp_addCMRol2(cod VARCHAR(8),codtip VARCHAR(5),des VARCHAR(100),act CHAR(1))
+BEGIN
+ iNSERT INto cmrol VALUES(cod,codtip,des,act);
+END;
+//
+
+#Editar los tipos de roles
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMRol2;//
+CREATE PROCEDURE sp_editCMRol2(cod VARCHAR(8),codtip VARCHAR(5),des VARCHAR(100),act CHAR(1))
+BEGIN
+ UPDATE cmrol SET codtiporol=codtip,descripcion=des,activo=act WHERE codrol=cod;
+END;
+//
+
+#Adicionar nuevas areas
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMArea;//
+CREATE PROCEDURE sp_addCMArea(cod VARCHAR(5),des VARCHAR(100),act CHAR(1))
+BEGIN
+ iNSERT INto cmarea VALUES(cod,des,act);
+END;
+//
+
+#Editar las areas
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMArea;//
+CREATE PROCEDURE sp_editCMArea(cod VARCHAR(5),des VARCHAR(100),act CHAR(1))
+BEGIN
+ UPDATE cmarea SET descripcion=des,activo=act WHERE codarea=cod;
+END;
+//
+
+#Adicionar Area/Rol
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMAreaRol;//
+CREATE PROCEDURE sp_addCMAreaRol(area VARCHAR(5),rol VARCHAR(8))
+BEGIN
+ iNSERT INto cmarearol VALUES(area,rol,'1');
+END;
+//
+
+#Adicionar Area/Rol
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMAreaRol;//
+CREATE PROCEDURE sp_editCMAreaRol(area VARCHAR(5),rol VARCHAR(8),act CHAR(1))
+BEGIN
+ update cmarearol SET activo=act where codarea=area AND codrol=rol;
+END;
+//
+
+#Adicionar un colaborador
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMColaborador;//
+CREATE PROCEDURE sp_addCMColaborador(ced VARCHAR(10),nom VARCHAR(100),app VARCHAR(50),aps VARCHAR(50),expc VARCHAR(100),
+lib VARCHAR(15),dis VARCHAR(5),sex VARCHAR(2),est VARCHAR(20),nac DATE,pais VARCHAR(50),depto VARCHAR(50),ciu VARCHAR(50),
+dir VARCHAR(100), bar VARCHAR(50),ciur VARCHAR(50),tel VARCHAR(50),cel VARCHAR(11),tip VARCHAR(15),ing DATE,ep VARCHAR(100),
+ar VARCHAR(100),ces VARCHAR(100),pen VARCHAR(100),ret DATE,mot VARCHAR(2000),con CHAR(2),mail VARCHAR(2000),act CHAR(1),
+maile VARCHAR(2000),sal DOUBLE,cod VARCHAR(100),foto VARCHAR(2000))
+BEGIN
+ INSERT INTO cmcolaborador VALUES(ced,nom,app,aps,expc,lib,dis,sex,est,nac,pais,depto,ciu,dir,bar,ciur,tel,cel,tip,ing,ep,
+ar,pen,ces,ret,mot,con,mail,act,maile,sal,cod,foto);
+END;
+//
+
+# Editar a los colaboradores desde el admin.
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMColaborador;//
+CREATE PROCEDURE sp_editCMColaborador(ced VARCHAR(10),nom VARCHAR(100),app VARCHAR(50),aps VARCHAR(50),expc VARCHAR(100),
+lib VARCHAR(15),dis VARCHAR(5),sex VARCHAR(2),est VARCHAR(20),nac DATE,pais VARCHAR(50),depto VARCHAR(50),ciu VARCHAR(50),
+dir VARCHAR(100), bar VARCHAR(50),ciur VARCHAR(50),tel VARCHAR(50),cel VARCHAR(11),tip VARCHAR(15),ing DATE,ep VARCHAR(100),
+ar VARCHAR(100),ces VARCHAR(100),pen VARCHAR(100),ret DATE,mot VARCHAR(2000),con CHAR(2),mail VARCHAR(2000),act CHAR(1),
+maile VARCHAR(2000),sal DOUBLE,cod VARCHAR(100))
+BEGIN
+    UPDATE cmcolaborador SET nombre=nom,apellidop=app,apellidos=aps,expcedula=expc,libretamil=lib,distritomil=dis,sexo=sex,
+    estadocivil=est,fechanacim=nac,paisnacim=pais,deptonacim=depto,ciudadnacim=ciu,direccion=dir,barrio=bar,ciudadresid=ciur,
+    telefonoresid=tel,celular=cel,tipovivienda=tip,fechaingreso=ing,eps=ep,arp=ar,pension=pen,cesantias=ces,fecharetiro=ret,
+    motivoretiro=mot,contratable=con,mailpersonal=mail,activo=act,mailempresa=maile,salario=sal,codigo=cod WHERE cedula=ced;
+END;
+//
+
+# Adicionar registros a la tabla cmpeso
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMPeso;//
+CREATE PROCEDURE sp_addCMPeso(pes FLOAT,cod VARCHAR(15),ann VARCHAR(4),ver VARCHAR(2),coda VARCHAR(5))
+BEGIN
+    INSERT INTO cmpeso VALUES(ann,ver,coda,cod,pes);
+END;
+//
+
+# EDITAR registros a la tabla cmpeso
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMPeso;//
+CREATE PROCEDURE sp_editCMPeso(pes FLOAT,cod VARCHAR(15),ann VARCHAR(4),ver VARCHAR(2),coda VARCHAR(5))
+BEGIN
+    UPDATE cmpeso SET peso=pes WHERE anno=ann AND version=ver AND codarea=coda AND codtipoeval=cod;
+END;
+//
+
+#  ADICIONAR EN TABLA CMFORMATO EL PESO SEGUN LA COMPETENCA
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMFormato;//
+CREATE PROCEDURE sp_addCMFormato(pes FLOAT,codcom VARCHAR(8),an varchar(4),ver varchar(2),codar varchar(5),
+req FLOAT,cri FLOAT)
+BEGIN
+    INSERT INTO cmformato VALUES(an,ver,codcom,codar,pes,req,cri);
+END;
+//
+
+#  EDITAR TABLA CMFORMATO EL PESO SEGUN COMPETENCIA
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMFormato;//
+CREATE PROCEDURE sp_editCMFormato(pes FLOAT,codcom VARCHAR(8),an varchar(4),ver varchar(2),codar varchar(5),
+req FLOAT,cri FLOAT)
+BEGIN
+   UPDATE cmformato SET peso=pes,requerido=req,criticidad=cri WHERE anno=an AND version=ver AND codarea=codar AND codcompetencia=codcom;
+END;
+//
+
+# 1 actualizar datos personales
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_updateCMcolaboradorPersonal;//
+CREATE PROCEDURE sp_updateCMcolaboradorPersonal(ced VARCHAR(10),nom VARCHAR(100),apeP VARCHAR(50),apeS VARCHAR(50),expCed VARCHAR(100),
+libMil VARCHAR(15),disMil VARCHAR(5),sex VARCHAR(2),estCivil VARCHAR(20),fecNac date,paisNac VARCHAR(50),depNac VARCHAR(50),
+ciuNac VARCHAR(50),dir VARCHAR(100),barr VARCHAR(50),ciuRes VARCHAR(50),tel VARCHAR(50),cel VARCHAR(11),vivienda VARCHAR(15),
+fecIngr date,epsIng VARCHAR(100),arpIng VARCHAR(100),pensionIng VARCHAR(100),cesan VARCHAR(100),mailPer VARCHAR(2000),mailEmp VARCHAR(2000),
+salar double,cod VARCHAR(100),fotogr VARCHAR(2000))
+BEGIN
+ UPDATE cmcolaborador SET nombre=nom,apellidop=apeP,apellidos=apeS,expcedula=expCed,libretamil=libMil,distritomil=disMil,
+ sexo=sex,estadocivil=estCivil,fechanacim=fecNac,paisnacim=paisNac,deptonacim=depNac,ciudadnacim=ciuNac,direccion=dir,
+ barrio=barr,ciudadresid=ciuRes,telefonoresid=tel,celular=cel,tipovivienda=vivienda,fechaingreso=fecIngr,eps=epsIng,
+ arp=arpIng,pension=pensionIng,cesantias=cesan,mailpersonal=mailPer,mailempresa=mailEmp,salario=salar,codigo=cod,foto=fotogr
+WHERE cedula=ced;
+END;
+//
+
+# 2 insertar datos nuevos de los familiares
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_insertCMfamilia;//
+CREATE PROCEDURE sp_insertCMfamilia(ced VARCHAR(10),ident VARCHAR(10),nom VARCHAR(100),apeP VARCHAR(50),apeS VARCHAR(50),
+paren VARCHAR(100),fecha DATE,ocupa VARCHAR(2000))
+BEGIN
+ INSERT INTO cmfamilia VALUES(ced,ident,nom,apeP,apeS,paren,fecha,ocupa);
+END;
+//
+
+# 3 insertar datos nuevos de estudios academicos
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_insertCMacademia;//
+CREATE PROCEDURE sp_insertCMacademia(ced VARCHAR(10),nvl VARCHAR(20),inst VARCHAR(2000),fecini DATE,fecfin DATE,
+title VARCHAR(2000))
+BEGIN
+DECLARE codi,cantidad smallint(6);
+SET codi=100;
+SELECT count(*) into cantidad FROM cmacademia;
+IF cantidad = 0 THEN
+ SET codi=100;
+ ELSE
+  SELECT max(codigo) into cantidad FROM cmacademia;
+  SET codi=cantidad+1;
+END IF;
+INSERT INTO cmacademia VALUES(ced,codi,nvl,inst,fecini,fecfin,title);
+END;
+//
+
+# 4 actualizar estudios academicos
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_updateCMacademia;//
+CREATE PROCEDURE  sp_updateCMacademia(ced VARCHAR(10),cod SMALLINT(6),nvl VARCHAR(20),inst VARCHAR(2000),fecini DATE,fecfin DATE,
+title VARCHAR(2000),oculto VARCHAR(2))
+BEGIN
+ IF oculto = 'SI' THEN
+    DELETE FROM cmacademia WHERE cedula=ced AND codigo=cod;
+ ELSE
+    UPDATE cmacademia SET nivel=nvl,institucion=inst,fechainicio=fecini,fechafin=fecfin,titulo=title WHERE cedula=ced AND codigo=cod;
+ END IF;
+END;
+//
+
+# 5 Insertar referencias
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_insertCMreferencia;//
+CREATE PROCEDURE sp_insertCMreferencia(ced VARCHAR(10),cedu VARCHAR(10),nombre VARCHAR(100),pApe VARCHAR(50),sApe VARCHAR(50),
+dir VARCHAR(200),tel VARCHAR(50),tipo VARCHAR(10),obs1 VARCHAR(2000),obs2 VARCHAR(2000))
+BEGIN
+ INSERT INTO cmreferencias VALUES(ced,cedu,nombre,pApe,sApe,dir,tel,tipo,obs1,obs2);
+END;
+//
+
+# 6 Actualizar Referencias
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_updateCMreferencia;//
+CREATE PROCEDURE sp_updateCMreferencia(ced VARCHAR(10),cedu VARCHAR(10),nom VARCHAR(100),pApe VARCHAR(50),sApe VARCHAR(50),
+dir VARCHAR(200),tel VARCHAR(50),tipo VARCHAR(10),obs1 VARCHAR(2000),obs2 VARCHAR(2000),opcion VARCHAR(2))
+BEGIN
+ IF opcion='SI' THEN
+    DELETE FROM cmreferencias WHERE cedula=ced AND cedreferencia=cedu;
+ ELSE
+    UPDATE cmreferencias SET nombre=nom,apellidop=pApe,apellidos=sApe,direccion=dir,telefono=tel,
+    tiporef=tipo,observacion1=obs1,observacion2=obs2 WHERE cedula=ced AND cedreferencia=cedu;
+ END IF;
+END;
+//
+
+# 7 Insertar registros de info laboral
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_insertCMinfolaboral;//
+CREATE PROCEDURE sp_insertCMinfolaboral(ced VARCHAR(10),empr VARCHAR(2000),car VARCHAR(2000),fecin DATE,fecfin DATE,func VARCHAR(2000),
+obs VARCHAR(2000))
+BEGIN
+DECLARE codi,cantidad smallint(6);
+SET codi=100;
+SELECT count(*) into cantidad FROM cminfolaboral;
+IF cantidad = 0 THEN
+ SET codi=100;
+ ELSE
+  SELECT max(codigo) into cantidad FROM cminfolaboral;
+  SET codi=cantidad+1;
+END IF;
+INSERT INTO cminfolaboral VALUES(ced,codi,empr,car,fecin,fecfin,func,obs);
+END;
+//
+
+# 8 Actualizar informacion laboral
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_updateCMinfolaboral;//
+CREATE PROCEDURE sp_updateCMinfolaboral(ced VARCHAR(10),cod SMALLINT(6),empr VARCHAR(2000),car VARCHAR(2000),fecin DATE,fecfin DATE,func VARCHAR(2000),
+obs VARCHAR(2000),oculto VARCHAR(2))
+BEGIN
+ IF oculto='SI' THEN
+    DELETE FROM cminfolaboral WHERE cedula=ced AND codigo=cod;
+  ELSE
+    UPDATE cminfolaboral SET empresa=empr,cargo=car,fechainicio=fecin,
+        fechafin=fecfin,funciones=func,observaciones=obs WHERE cedula=ced AND codigo=cod;
+ END IF;
+END;
+//
+
+# 9 Actualizar contrsasenia
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_updateSeguridad;//
+CREATE PROCEDURE sp_updateSeguridad(ced VARCHAR(10),pss VARCHAR(20),new VARCHAR(20))
+BEGIN
+UPDATE cmusuario SET contrasena=new WHERE cedula=ced AND contrasena=pss;
+END;
+//
+
+# Actualizar parametros
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_updateCMParametros;//
+CREATE PROCEDURE sp_updateCMParametros
+(nt VARCHAR(15),nm VARCHAR(2000),rz VARCHAR(2000),dr VARCHAR(2000),tl VARCHAR(100),
+fx VARCHAR(100),wb VARCHAR(1000), lg VARCHAR(2000))
+BEGIN
+ UPDATE cmparametros SET nit=nt,nombre=nm,razonsocial=rz,direccion=dr,telefono=tl,fax=fx,paginaweb=wb,logo=lg;
+END;
+//
+
+# Insertar nuevos modulos
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMModulos;//
+CREATE PROCEDURE sp_addCMModulos(md VARCHAR(50),des VARCHAR(2000),ord SMALLINT(2),ac CHAR(1))
+BEGIN
+    INSERT INTO cmmodulos VALUES(md,des,ord,ac);
+END;
+//
+
+# Editar modulos
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMModulos;//
+CREATE PROCEDURE sp_editCMModulos(md VARCHAR(50),des VARCHAR(2000),ord SMALLINT(2),ac CHAR(1))
+BEGIN
+    UPDATE cmmodulos SET descripcion=des,orden=ord,activo=ac WHERE modulo=md;
+END;
+//
+
+# Insertar nuevos opciones de menu
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMOpcionesMenu;//
+CREATE PROCEDURE sp_addCMOpcionesMenu(cod VARCHAR(4),op VARCHAR(2000),arc VARCHAR(2000),ord SMALLINT(2),ac CHAR(1))
+BEGIN
+    INSERT INTO cmopcionesmenu VALUES(cod,op,arc,ord,ac);
+END;
+//
+
+# Editar modulos
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMOpcionesMenu;//
+CREATE PROCEDURE sp_editCMOpcionesMenu(cod VARCHAR(4),op VARCHAR(2000),arc VARCHAR(2000),ord SMALLINT(2),ac CHAR(1))
+BEGIN
+    UPDATE cmopcionesmenu SET opcion=op,archivo=arc,orden=ord,activo=ac WHERE codopcion=cod;
+END;
+//
+
+#Adicionar elementos al menu
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMMenu;//
+CREATE PROCEDURE sp_addCMMenu(md VARCHAR(50),cod VARCHAR(4),ac CHAR(1))
+BEGIN
+    INSERT INTO cmmenu VALUES(md,cod,ac);
+END;
+//
+
+# Eliminar elementos del menu
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_deleteMenu;//
+CREATE PROCEDURE sp_deleteMenu(md VARCHAR(50),cod VARCHAR(4))
+BEGIN
+    DELETE FROM cmmenu WHERE modulo=md AND codopcion=cod;
+END;
+//
+
+#Editar elementos al menu
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMMenu;//
+CREATE PROCEDURE sp_editCMMenu(md VARCHAR(50),cod VARCHAR(4),ac CHAR(1))
+BEGIN
+    UPDATE cmmenu SET activo=ac WHERE modulo=md AND codopcion=cod;
+END;
+//
+
+#Adicionar tipos de usuario
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMTipUsu;//
+CREATE PROCEDURE sp_addCMTipUsu(cod VARCHAR(4),tp VARCHAR(50),des VARCHAR(2000),ac CHAR(1))
+BEGIN
+    INSERT INTO cmtipousuario VALUES(cod,tp,des,ac);
+END;
+//
+
+#Editar tipos de usuarios
+DELIMITER //
+DrOP ProCeDURE IF EXISTS sp_editCMTipUsu;//
+CREATE PROCEDURE sp_editCMTipUsu (cod VARCHAR(4),tp VARCHAR(50),des VARCHAR(2000),ac CHAR(1))
+BEGIN
+    UPDATE cmtipousuario SET tipo=tp,descripcion=des,activo=ac WHERE codtipo=cod;
+END;
+//
+
+# Adicionar usuario a cmusuario
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMUsuario;//
+CREATE PROCEDURE sp_addCMUsuario (usu VARCHAR(50),cod VARCHAR(4),ced VARCHAR(10),pss VARCHAR(20),
+des VARCHAR(2000),ac CHAR(1))
+BEGIN
+ INSERT INTO cmusuario VALUES (usu,cod,ced,pss,des,ac,0);
+END;
+//
+
+#Editar usuarios cmusuario (admin)
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMUsuAdmin;//
+CREATE PROCEDURE sp_editCMUsuAdmin (usu VARCHAR(50),cod VARCHAR(4),ced VARCHAR(10),pss VARCHAR(20),
+des VARCHAR(2000),ac CHAR(1))
+BEGIN
+    UPDATE cmusuario SET usuario=usu,codtipo=cod,contrasena=pss,descripcion=des,activo=ac WHERE cedula=ced;
+END;
+//
+
+# Asociar un nuevo modulo a un usuario
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMSeguridad;//
+CREATE PROCEDURE sp_addCMSeguridad (modu VARCHAR(50),usu VARCHAR(50))
+BEGIN
+    INSERT INTO cmseguridad VALUES(modu,usu,'1');
+END;
+//
+
+# Editar un modulo y un usuario
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMSeg;//
+CREATE PROCEDURE sp_editCMSeg (modu VARCHAR(50),usu VARCHAR(50),act CHAR(1))
+BEGIN
+    UPDATE cmseguridad SET activo=act WHERE modulo=modu AND usuario=usu;
+END;
+//
+
+#Eliminar usuario y modulo de seguridad
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_deleteCMSeg;//
+CREATE PROCEDURE sp_deleteCMSeg (modu VARCHAR(50),usu VARCHAR(50))
+BEGIN
+    DELETE FROM cmseguridad WHERE modulo=modu AND usuario=usu;
+END;
+//
+
+#Adicionar roles
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMRol;//
+CREATE PROCEDURE sp_addCMRol(cod VARCHAR(5),des VARCHAR(100),act CHAR(1))
+BEGIN
+ iNSERT INto cmtiporol VALUES(cod,des,act);
+END;
+//
+
+#Editar los tipos de roles
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMRol;//
+CREATE PROCEDURE sp_editCMRol(cod VARCHAR(5),des VARCHAR(100),act CHAR(1))
+BEGIN
+ UPDATE cmtiporol SET descripcion=des,activo=act WHERE codtiporol=cod;
+END;
+//
+
+# Adicionar registros a la tabla cmpeso
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMPeso;//
+CREATE PROCEDURE sp_addCMPeso(pes FLOAT,cod VARCHAR(15),ann VARCHAR(4),ver VARCHAR(2),coda VARCHAR(5))
+BEGIN
+    INSERT INTO cmpeso VALUES(ann,ver,coda,cod,pes);
+END;
+//
+
+# EDITAR registros a la tabla cmpeso
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMPeso;//
+CREATE PROCEDURE sp_editCMPeso(pes FLOAT,cod VARCHAR(15),ann VARCHAR(4),ver VARCHAR(2),coda VARCHAR(5))
+BEGIN
+    UPDATE cmpeso SET peso=pes WHERE anno=ann AND version=ver AND codarea=coda AND codtipoeval=cod;
+END;
+//
+
+#Adicionar un colaborador
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMColaborador;//
+CREATE PROCEDURE sp_addCMColaborador(ced VARCHAR(10),nom VARCHAR(100),app VARCHAR(50),aps VARCHAR(50),expc VARCHAR(100),
+lib VARCHAR(15),dis VARCHAR(5),sex VARCHAR(2),est VARCHAR(20),nac DATE,pais VARCHAR(50),depto VARCHAR(50),ciu VARCHAR(50),
+dir VARCHAR(100), bar VARCHAR(50),ciur VARCHAR(50),tel VARCHAR(50),cel VARCHAR(11),tip VARCHAR(15),ing DATE,ep VARCHAR(100),
+ar VARCHAR(100),ces VARCHAR(100),pen VARCHAR(100),ret DATE,mot VARCHAR(2000),con CHAR(2),mail VARCHAR(2000),act CHAR(1),
+maile VARCHAR(2000),sal DOUBLE,cod VARCHAR(100),foto VARCHAR(2000))
+BEGIN
+ INSERT INTO cmcolaborador VALUES(ced,nom,app,aps,expc,lib,dis,sex,est,nac,pais,depto,ciu,dir,bar,ciur,tel,cel,tip,ing,ep,
+ar,pen,ces,ret,mot,con,mail,act,maile,sal,cod,foto);
+END;
+//
+
+# Editar a los colaboradores desde el admin.
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMColaborador;//
+CREATE PROCEDURE sp_editCMColaborador(ced VARCHAR(10),nom VARCHAR(100),app VARCHAR(50),aps VARCHAR(50),expc VARCHAR(100),
+lib VARCHAR(15),dis VARCHAR(5),sex VARCHAR(2),est VARCHAR(20),nac DATE,pais VARCHAR(50),depto VARCHAR(50),ciu VARCHAR(50),
+dir VARCHAR(100), bar VARCHAR(50),ciur VARCHAR(50),tel VARCHAR(50),cel VARCHAR(11),tip VARCHAR(15),ing DATE,ep VARCHAR(100),
+ar VARCHAR(100),ces VARCHAR(100),pen VARCHAR(100),ret DATE,mot VARCHAR(2000),con CHAR(2),mail VARCHAR(2000),act CHAR(1),
+maile VARCHAR(2000),sal DOUBLE,cod VARCHAR(100))
+BEGIN
+    UPDATE cmcolaborador SET nombre=nom,apellidop=app,apellidos=aps,expcedula=expc,libretamil=lib,distritomil=dis,sexo=sex,
+    estadocivil=est,fechanacim=nac,paisnacim=pais,deptonacim=depto,ciudadnacim=ciu,direccion=dir,barrio=bar,ciudadresid=ciur,
+    telefonoresid=tel,celular=cel,tipovivienda=tip,fechaingreso=ing,eps=ep,arp=ar,pension=pen,cesantias=ces,fecharetiro=ret,
+    motivoretiro=mot,contratable=con,mailpersonal=mail,activo=act,mailempresa=maile,salario=sal,codigo=cod WHERE cedula=ced;
+END;
+//
+
+#Adicionar lineamientos
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMLineamientos;//
+CREATE PROCEDURE sp_addCMLineamientos(cod VARCHAR(5),lin VARCHAR(200),obs VARCHAR(2000),pes DOUBLE(20,2),ac CHAR(1))
+BEGIN
+    INSERT INTO cmlineamiento VALUES(cod,lin,obs,pes,ac);
+END;
+//
+
+#Editar Lineamientos
+DELIMITER //
+DrOP ProCeDURE IF EXISTS sp_editCMLineamiento;//
+CREATE PROCEDURE sp_editCMLineamiento (cod VARCHAR(5),lin VARCHAR(200),obs VARCHAR(2000),pes DOUBLE(20,2),ac CHAR(1))
+BEGIN
+    UPDATE cmlineamiento SET lineamiento=lin,observaciones=obs,peso=pes,activo=ac WHERE codlinea=cod;
+END;
+//
+
+#Adicionar iniciativas
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMIni2;//
+CREATE PROCEDURE sp_addCMIni2(codreg VARCHAR(5),codi VARCHAR(5),codl VARCHAR(5),ini VARCHAR(200),des VARCHAR(2000),pes DOUBLE(20,2),act CHAR(1))
+BEGIN
+INSERT INTO cminiciativa VALUES(codreg,codi,codl,ini,des,pes,act);
+END;
+//
+
+#Editar iniciativas
+DELIMITER //
+DrOP ProCeDURE IF EXISTS sp_editCMIniciativa;//
+CREATE PROCEDURE sp_editCMIniciativa (codreg VARCHAR(5),codl VARCHAR(5),codi VARCHAR(5),ini VARCHAR(200),des VARCHAR(2000),pes DOUBLE(20,2),act CHAR(1))
+BEGIN
+    UPDATE cminiciativa SET codinicia=codi,codlinea=codl,iniciativa=ini,observaciones=des,peso=pes,activo=act WHERE codigoreg=codreg;
+END;
+//
+
+#Adicionar Periodobsc
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMPeriodobsc;//
+CREATE PROCEDURE sp_addCMPeriodobsc(ano VARCHAR(4),sem SMALLINT(1),des VARCHAR(2000),feci DATE,fecf DATE,act CHAR(1))
+BEGIN
+    INSERT INTO cmperiodobsc VALUES(ano,sem,des,feci,fecf,act);
+END;
+//
+
+#Editar periodobsc
+DELIMITER //
+DrOP ProCeDURE IF EXISTS sp_editCMPeriodobsc;//
+CREATE PROCEDURE sp_editCMPeriodobsc (ano VARCHAR(4),sem SMALLINT(1),des VARCHAR(2000),feci DATE,fecf DATE,act CHAR(1))
+BEGIN
+    UPDATE cmperiodobsc SET descripcion=des,fechainicio=feci,fechacierre=fecf,activo=act WHERE anno=ano and semestre=sem;
+END;
+//
+
+#Adicionar Meta Area
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMMetasarea;//
+CREATE PROCEDURE sp_addCMMetasarea(codreg VARCHAR(5),codm VARCHAR(5),codi VARCHAR(5),coda VARCHAR(5),anno VARCHAR(4),sem SMALLINT(1),des VARCHAR(2000),pes DOUBLE(20,2),act CHAR(1))
+BEGIN
+    INSERT INTO cmmetasarea VALUES(codreg,codm,codi,coda,anno,sem,des,pes,act);
+END;
+//
+
+#Editar metas area
+DELIMITER //
+DrOP ProCeDURE IF EXISTS sp_editCMMetasarea;//
+CREATE PROCEDURE sp_editCMMetasarea (codreg VARCHAR(5),codm VARCHAR(5),codi VARCHAR(5),coda VARCHAR(5),anno VARCHAR(4),sem SMALLINT(1),des VARCHAR(2000),pes DOUBLE(20,2),act CHAR(1))
+BEGIN
+    UPDATE cmmetasarea SET codmeta=codm, codinicia=codi, codarea=coda, anno=anno, semestre=sem, descripcion=des, peso=pes, activo=act WHERE codigoreg=codreg;
+END;
+//
+
+#Adicionar Meta Colaborador
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMMetascol;//
+CREATE PROCEDURE sp_addCMMetascol(codreg VARCHAR(5),ced VARCHAR(10),codr VARCHAR(8),codm VARCHAR(5),des VARCHAR(4000), tipo VARCHAR(12), esp DOUBLE(20,2), rea DOUBLE(20,2), pes DOUBLE(20,2),act CHAR(1))
+BEGIN
+    INSERT INTO cmmetascolab VALUES(codreg,ced,codr,codm,des,tipo,esp,rea,pes,act);
+END;
+//
+
+#Editar metas colaborador
+DELIMITER //
+DrOP ProCeDURE IF EXISTS sp_editCMMetascol;//
+CREATE PROCEDURE sp_editCMMetascol (codreg VARCHAR(5),codm VARCHAR(5), des VARCHAR(2000),tipo VARCHAR(12), esp DOUBLE(20,2), pes DOUBLE(20,2),act CHAR(1))
+BEGIN
+    UPDATE cmmetascolab SET codmetarea=codm, descripcion=des, tipometa=tipo, esperado=esp, peso=pes, activo=act WHERE codigoreg=codreg;
+END;
+//
+
+#Adicionar Plan acción
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMPlanaccion;//
+CREATE PROCEDURE sp_addCMPlanaccion(codreg VARCHAR(5),codplan VARCHAR(10),codm VARCHAR(5),des VARCHAR(4000),feci DATE, fecc DATE, seg SMALLINT(1), obs VARCHAR(4000), act CHAR(1))
+BEGIN
+    INSERT INTO cmplanaccion VALUES(codreg,codplan,codm,des,feci,fecc,seg,obs,act);
+END;
+//
+
+#Editar metas colaborador
+DELIMITER //
+DrOP ProCeDURE IF EXISTS sp_editCMPlanaccion;//
+CREATE PROCEDURE sp_editCMPlanaccion(codreg VARCHAR(5),codm VARCHAR(5),des VARCHAR(4000),feci DATE, fecc DATE, act CHAR(1))
+BEGIN
+    UPDATE cmplanaccion SET codmetacol=codm, descripcion=des, fechainicio=feci, fechacierre=fecc, activo=act WHERE codigoreg=codreg;
+END;
+//
+
+#Adicionar Rol Colaborador
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMRolColaborador;//
+CREATE PROCEDURE sp_addCMRolColaborador(rol VARCHAR(8),ced VARCHAR(10),fec DATE, act CHAR(1))
+BEGIN
+	UPDATE cmrolcolaborador SET activo='2' WHERE cedula=ced;
+    INSERT INTO cmrolcolaborador VALUES(rol,ced,fec,act);
+END;
+//
+
+#Editar Rol Colaborador
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMRolColaborador;//
+CREATE PROCEDURE sp_editCMRolColaborador(rol VARCHAR(8),ced VARCHAR(10),fec DATE, feco DATE, act CHAR(1))
+BEGIN
+	UPDATE cmrolcolaborador SET fecha=fec, activo=act WHERE cedula=ced AND codrol=rol AND fecha=feco;
+END;
+//
+
+#Adicionar Grupo competencias
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMGrupoComp;//
+CREATE PROCEDURE sp_addCMGrupoComp(cod VARCHAR(5),des VARCHAR(100),col VARCHAR(10),act CHAR(1))
+BEGIN
+	INSERT INTO cmgrupocompetencia VALUES(cod,des,col,act);
+END;
+//
+
+#Editar Grupo de competencias
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMGrupoComp;//
+CREATE PROCEDURE sp_editCMGrupoComp(cod VARCHAR(5),des VARCHAR(100),act CHAR(1))
+BEGIN
+	UPDATE cmgrupocompetencia SET descripcion=des, activo=act WHERE codgrupocom=cod;
+END;
+//
+
+#Adicionar Competencias
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMCompetencia;//
+CREATE PROCEDURE sp_addCMCompetencia(codc VARCHAR(8),codg VARCHAR(5),des VARCHAR(100),obs VARCHAR(2000),act CHAR(1))
+BEGIN
+	INSERT INTO cmcompetencia VALUES(codc,codg,des,obs,act);
+END;
+//
+
+#Editar Grupo de competencias
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMCompetencias;//
+CREATE PROCEDURE sp_editCMCompetencias(codc VARCHAR(8),codg VARCHAR(5),des VARCHAR(100),obs VARCHAR(2000),act CHAR(1))
+BEGIN
+	UPDATE cmcompetencia SET codgrupocom=codg, descripcion=des, observaciones=obs, activo=act WHERE codcompetencia=codc;
+END;
+//
+
+#Adicionar Area Competencia
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMAreaCompetencia;//
+CREATE PROCEDURE sp_addCMAreaCompetencia(area VARCHAR(5),com VARCHAR(8))
+BEGIN
+    INSERT INTO cmareacompetencia VALUES(area,com,'1');
+END;
+//
+
+#Editar Area Competencia
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMAreaCompetencia;//
+CREATE PROCEDURE sp_editCMAreaCompetencia(area VARCHAR(5), com VARCHAR(8), act CHAR(1))
+BEGIN
+	UPDATE cmareacompetencia SET activo=act WHERE codarea=area AND codcompetencia=com;
+END;
+//
+
+#Adicionar Niveles
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMNivel;//
+CREATE PROCEDURE sp_addCMNivel(cod VARCHAR(8),des VARCHAR(100),obs VARCHAR(2000),act CHAR(1))
+BEGIN
+	INSERT INTO cmnivel VALUES(cod,des,obs,act);
+END;
+//
+
+#Editar Niveles
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMNivel;//
+CREATE PROCEDURE sp_editCMNivel(cod VARCHAR(8),des VARCHAR(100),obs VARCHAR(2000),act CHAR(1))
+BEGIN
+	UPDATE cmnivel SET descripcion=des, observacion=obs, activo=act WHERE codnivel=cod;
+END;
+//
+
+#Adicionar Competencia Nivel
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMCompetenciaNivel;//
+CREATE PROCEDURE sp_addCMCompetenciaNivel(com VARCHAR(8), niv VARCHAR(8))
+BEGIN
+    INSERT INTO cmcompetencianivel VALUES(com,niv,'1');
+END;
+//
+
+#Editar Area Competencia
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMCompetenciaNivel;//
+CREATE PROCEDURE sp_editCMCompetenciaNivel(com VARCHAR(8), niv VARCHAR(8), act CHAR(1))
+BEGIN
+	UPDATE cmcompetencianivel SET activo=act WHERE codcompetencia=com AND codnivel=niv;
+END;
+//
+
+#Adicionar Tipo Evaluador
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMTipoEvaluador;//
+CREATE PROCEDURE sp_addCMTipoEvaluador(cod VARCHAR(15),des VARCHAR(100),act CHAR(1))
+BEGIN
+	INSERT INTO cmtipoeval VALUES(cod,des,act);
+END;
+//
+
+#Editar Tipo Evaluador
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMTipoEvaluador;//
+CREATE PROCEDURE sp_editCMTipoEvaluador(cod VARCHAR(15),des VARCHAR(100),act CHAR(1))
+BEGIN
+	UPDATE cmtipoeval SET descripcion=des, activo=act WHERE codigo=cod;
+END;
+//
+
+#Adicionar Periodo
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCMPeriodo;//
+CREATE PROCEDURE sp_addCMPeriodo(ano VARCHAR(4),ver VARCHAR(2),des VARCHAR(2000),feci DATE,fecf DATE,act CHAR(1))
+BEGIN
+    INSERT INTO cmperiodo VALUES(ano,ver,des,feci,fecf,act);
+END;
+//
+
+#Editar periodo
+DELIMITER //
+DrOP ProCeDURE IF EXISTS sp_editCMPeriodo;//
+CREATE PROCEDURE sp_editCMPeriodo (ano VARCHAR(4),ver VARCHAR(2),des VARCHAR(2000),feci DATE,fecf DATE,act CHAR(1))
+BEGIN
+    UPDATE cmperiodo SET descripcion=des,fechainicio=feci,fechacierre=fecf,activo=act WHERE anno=ano and version=ver;
+END;
+//
+
+#Adicionar ExcepPeriodo
+DrOP ProCeDURE IF EXISTS sp_addCMExcepPeriodo//
+CREATE PROCEDURE sp_addCMExcepPeriodo (ano VARCHAR(4),ver VARCHAR(2),ced VARCHAR (10), fecf DATE,des VARCHAR(2000))
+BEGIN
+    INSERT INTO cmexcepbalance VALUES(ano,ver,ced,fecf,des);
+END
+//
+
+#Editar Excepperiodo
+DELIMITER //
+DrOP ProCeDURE IF EXISTS sp_editCMExcepPeriodo;//
+CREATE PROCEDURE sp_editCMExcepPeriodo (ano VARCHAR(4),ver VARCHAR(2),ced VARCHAR (10), fecf DATE,des VARCHAR(2000))
+BEGIN
+    UPDATE cmexcepbalance SET observaciones=des,fechacierre=fecf WHERE anno=ano and version=ver and cedula = ced;
+END;
+//
+
+# 33 EDITAR LOS REGISTROS CORRESPONDIENTES A LA OPCION 'EJECUCION PLAN ACCION'
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_editCMRegplacc;//
+CREATE PROCEDURE sp_editCMRegplacc (cod VARCHAR(5),met VARCHAR(5),re DOUBLE,obs VARCHAR(4000),seg SMALLINT(1),
+st VARCHAR(20))
+BEGIN
+    IF obs = '' THEN 
+        IF st = '' THEN               
+            UPDATE cmplanaccion SET seguimiento=seg,observaciones=obs WHERE codplan=cod;        
+        END IF;
+    ELSE
+        UPDATE cmplanaccion SET seguimiento=seg,observaciones=obs WHERE codplan=cod;           
+    END IF;  
+    UPDATE cmmetascolab SET cmmetascolab.real=re WHERE codigoreg=met;  
+END;
+//
+
+#Editar Metas personales por archivo plano
+DELIMITER //
+DrOP ProCeDURE IF EXISTS sp_UploadFile;//
+CREATE PROCEDURE sp_UploadFile (cod VARCHAR(5),rea DOUBLE(20,2))
+BEGIN
+    UPDATE cmmetascolab SET cmmetascolab.real=rea WHERE codigoreg = cod;
+END;
+//
+
+# PROCEDIMIENTO ALMACENADO PARA LA COPIA DE PLAN DE ACCION DE UN SUARIOA OTRO
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_addCopiaPl;//
+CREATE PROCEDURE sp_addCopiaPl(cedor VARCHAR(10),rol VARCHAR(8),ceddes VARCHAR(10),an VARCHAR(4),sem SMALLINT(1))
+BEGIN
+  DECLARE codreg VARCHAR(25);
+  DECLARE cedtb VARCHAR(10);
+  DECLARE codtb VARCHAR(8);
+  DECLARE codmet VARCHAR(5);
+  DECLARE des VARCHAR(4000);
+  DECLARE tipo VARCHAR(12);
+  DECLARE esp,rl,pes DOUBLE;
+  DECLARE act CHAR(1);  
+  DECLARE done INT DEFAULT TRUE;
+  DECLARE num_rows,contador INT DEFAULT 0;
+  DEClARE cursor_cop CURSOR FOR SELECT MC.*
+  FROM cmmetasarea MA INNER JOIN cmmetascolab MC ON (MA.CODIGOREG = MC.CODMETAREA)
+  WHERE MA.ANNO = an AND MA.SEMESTRE = sem AND MC.CEDULA = cedor AND MC.CODROL = rol;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = FALSE;
+        OPEN cursor_cop;
+          select FOUND_ROWS() into num_rows;
+          the_loop: LOOP
+            FETCH cursor_cop INTO codreg,cedtb,codtb,codmet,des,tipo,esp,rl,pes,act;
+            IF done THEN
+              SELECT count(*) into contador from cmmetascolab WHERE codigoreg = CONCAT(codreg,'',ceddes);
+              IF contador = 0 THEN
+                INSERT INTO cmmetascolab VALUES(CONCAT(codreg,'',ceddes),ceddes,codtb,
+                codmet,des,tipo,esp,rl,pes,act);
+                BEGIN
+                  DECLARE reg VARCHAR(25);
+                  DECLARE col VARCHAR(25);
+                  DECLARE plan VARCHAR(5);
+                  DECLARE descr VARCHAR(4000);
+                  DECLARE obs VARCHAR(4000);
+                  DECLARE ini DATE;
+                  DECLARE cierre DATE;
+                  DECLARE segui SMALLINT;
+                  DECLARE activ CHAR(1);
+                  DECLARE contador2 INT DEFAULT 0;
+                  DECLARE done2 INT DEFAULT TRUE;
+                  DECLARE cursor_planacc CURSOR FOR SELECT * FROM cmplanaccion WHERE codmetacol=codreg;
+                  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done2=FALSE;
+                  OPEN cursor_planacc;
+                    loop_inter: LOOP
+                      FETCH cursor_planacc INTO reg,plan,col,descr,ini,cierre,segui,obs,activ;
+                      IF done2 THEN
+                        SELECT count(*) into contador2 FROM cmplanaccion WHERE codigoreg=CONCAT(reg,'',ceddes);
+                        IF contador2 = 0 THEN
+                          INSERT INTO cmplanaccion VALUES (CONCAT(reg,'',ceddes),plan,CONCAT(codreg,'',ceddes),descr,ini,cierre,segui,obs,activ);
+                        END IF;
+                      ELSE
+                        LEAVE loop_inter;
+                      END IF;
+                    END LOOP loop_inter;
+                  CLOSE cursor_planacc;
+                END;
+              END IF;
+            ELSE              
+              LEAVE the_loop;
+            END IF;
+            SET contador=0;
+          END LOOP the_loop;
+        CLOSE cursor_cop;
+END;
